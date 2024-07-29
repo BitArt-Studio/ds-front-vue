@@ -1,0 +1,10 @@
+@import 'element-plus/theme-chalk/dark/css-vars.css';
+
+.el-table {
+  --el-table-header-bg-color: #1d1e1f !important;
+}
+
+
+body {
+  @apply text-gray-700 dark: bg-gray-800 dark:text-gray-200;
+}
