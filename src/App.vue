@@ -5,7 +5,7 @@ const route = useRoute();
 <template>
   <div class="h-full flex flex-col">
     <the-header class="flex-none" />
-    <div class="p-5 flex-grow">
+    <div class="py-5 flex-grow">
       <el-config-provider>
         <router-view :key="route.name"></router-view>
       </el-config-provider>

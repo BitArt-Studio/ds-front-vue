@@ -1,7 +1,7 @@
 <template>
   <div class="w-250 m-auto h-full">
     <div class="flex w-full h-100">
-      <div class="w-1/2 flex flex-col text-xl justify-between space-xy-1">
+      <div class="w-1/2 flex flex-col text-xl justify-between">
         <div>
           <div class="text-5xl font-bold mb-2 w-full textRed">Dance of Struct</div>
           <div>
@@ -10,12 +10,19 @@
           </div>
         </div>
         <div class="flex-col space-y-2">
-          <div class="font-bold flex items-center"><Icon icon="clarity:block-solid" class="mr-2" />Block Range</div>
+          <div class="font-bold flex items-center">
+            <Icon icon="clarity:block-solid" class="mr-2" />
+            Block Range
+          </div>
           <div class="ml-4">{{ blockHeightStart }} ~ {{ blockHeightEnd }}</div>
-          <div class="font-bold flex items-center"><Icon class="mr-2" icon="weui:time-outlined" />Time Range</div>
+          <div class="font-bold flex items-center">
+            <Icon class="mr-2" icon="weui:time-outlined" />
+            Time Range
+          </div>
           <div class="ml-4">{{ formatDate(timeStart) }} ~ {{ formatDate(timeEnd) }}</div>
           <div class="font-bold flex items-center">
-            <Icon class="mr-2" icon="game-icons:sands-of-time" /> Time Remaining Until The End
+            <Icon class="mr-2" icon="game-icons:sands-of-time" />
+            Remaining Block
           </div>
           <div>
             <span class="font-bold text-2xl ml-4 textRed">{{ restBlock }}</span> Blocks
@@ -29,13 +36,15 @@
             type="danger"
             size="large"
             @click="connectWalletClick"
-            >connection wallet</el-button
           >
+            <div v-if="restBlock <= 0">Finished</div>
+            <div v-else>Connection Wallet</div>
+          </el-button>
           <div v-else class="w-full flex">
-            <el-button class="w-7/10" type="danger" size="large" @click="mintClick">Start mint</el-button>
-            <el-button :loading="loading" type="info" class="w-3/10" size="large" @click="reGenerate"
-              >Rebuild</el-button
-            >
+            <el-button class="w-7/10" type="danger" size="large" @click="mintClick">Start Mint</el-button>
+            <el-button :loading="reLoading" type="info" class="w-3/10" size="large" @click="reGenerate"
+              >Rebuild
+            </el-button>
           </div>
         </div>
       </div>
@@ -59,9 +68,9 @@
         <div class="flex-col">
           <div class="flex justify-center">
             <el-steps class="w-7/10" :active="step" align-center>
-              <el-step title="Step 1" description="Select fee rate" />
-              <el-step title="Step 2" description="Send btc" />
-              <el-step title="Step 3" description="Finish mint" />
+              <el-step title="Select fee rate" />
+              <el-step title="Send btc" />
+              <el-step title="Finish mint" />
             </el-steps>
           </div>
 
@@ -71,7 +80,8 @@
               <div class="flex items-center justify-center text-xl textRed">
                 <div v-if="price == 0">Free Mint</div>
                 <div v-else class="flex items-center">
-                  Price: {{ price }} <Icon class="ml-2" icon="cryptocurrency-color:btc" />
+                  Price: {{ price }}
+                  <Icon class="ml-2" icon="cryptocurrency-color:btc" />
                 </div>
               </div>
               <div></div>
@@ -94,7 +104,8 @@
               </div>
               <div>Wait pay address: {{ saveOrderResponse.payAddress }}</div>
               <div>
-                Pay fee: {{ saveOrderResponse.estimateFee / 1e8 }} <Icon class="ml-2" icon="cryptocurrency-color:btc" />
+                Pay fee: {{ saveOrderResponse.estimateFee / 1e8 }}
+                <Icon class="ml-2" icon="cryptocurrency-color:btc" />
               </div>
             </div>
             <div v-else-if="step == 3" class="textRed text-xl flex-col space-y-4">
@@ -117,11 +128,11 @@
               <el-button link type="info" @click="dialogVisible = false">Cancel</el-button>
               <el-button v-if="sendFail" link type="danger" @click="nextClick">Try again</el-button>
               <el-button v-else link type="danger" :loading="step == 2 && txId.length <= 0" @click="nextClick"
-                >Next</el-button
-              >
+                >Next
+              </el-button>
             </div>
             <div v-else>
-              <el-button :loading="loading" link type="info" @click="dialogVisible = false">Finish</el-button>
+              <el-button :loading="loading" link type="info" @click="dialogVisible = false">Finished</el-button>
             </div>
           </div>
         </div>
@@ -130,13 +141,11 @@
 
     <el-card class="mt-10">
       <template #header>
-        <div class="textRed text-xl font-bold flex items-center">
-          <Icon class="mr-2" icon="ph:user-list-thin" /> Whitelist Verification
-        </div>
+        <div class="textRed text-xl font-bold flex items-center">Whitelist Verification</div>
       </template>
-      <el-input v-model="whiteListAddress" :size="'large'" placeholder="Please wallet address">
+      <el-input v-model="whiteListAddress" :size="'large'" placeholder="Your BTC Address">
         <template #append>
-          <el-button :icon="Search" @click="whiteListSearch" />
+          <el-button :loading="searchLoading" :icon="Search" @click="whiteListSearch" />
         </template>
       </el-input>
       <div v-if="isValid != undefined" class="textRed mt-2">
@@ -147,7 +156,10 @@
     <div class="mt-10">
       <div class="textRed text-2xl border-b-1 pb-2">FAQ</div>
       <el-collapse v-model="collapse" accordion>
-        <el-collapse-item title="Our Perspective on Art" name="1">
+        <el-collapse-item title="" name="1">
+          <template #title>
+            <div class="font-bold text-[#409EFF]">Our Perspective on Art</div>
+          </template>
           <div class="flex-col space-y-4">
             <div>
               Art has always been a brilliant jewel in the spiritual world of humanity. Science, philosophy, and art
@@ -259,6 +271,61 @@
             <p>This also pays homage to the Columbus of the digital art world!</p>
           </div>
         </el-collapse-item>
+        <el-collapse-item title="About The Dance of Struct" name="5">
+          <div>
+            <p>
+              "The Dance of Struct" explores the essence of everyday objects through the lens of basic geometric shapes.
+              In the industrial and post-industrial era, I find that objects bear the unique imprint of industrial
+              machinery, presenting forms shaped by geometric elements. From the curves of products to the structures of
+              roads and buildings, these are composed of controlled industrial geometric elements, forming the
+              environment around us.
+            </p>
+            <p>
+              The work is an exploratory creation from a visual aesthetic perspective, aiming to capture contemporary
+              rationality and an appreciation for order within the industrial field. By utilizing basic geometric
+              shapes, it not only depicts the visual characteristics of objects in the computer age but also reveals the
+              fundamental structures and principles forged by industrial processes. The intentional arrangement and
+              combination of these shapes encourage viewers to reflect on various industrial scenes and elements,
+              prompting them to ponder the intricate relationship between industry and art.
+            </p>
+            <p>
+              Through abstract language, my series transcends simple representation, providing a canvas that stimulates
+              the viewer's imagination and allows them to interpret the artwork from a unique perspective. Filled with
+              contemporary industrial rationality and an appreciation for the aesthetics of order, "The Dance of
+              Structures" invites viewers to explore the visual impact and thought-provoking ways at the intersection of
+              industry and art.
+            </p>
+            <p>
+              "The Dance of Struct" is not only an exploration of the integration of industrial geometry and aesthetic
+              structure but also a contemplation of the balance between rationality and sensibility. Through the
+              language of abstract art, the work conveys the order and beauty within industrial civilization while also
+              expressing the freedom and vitality of individuals within the structure. Introducing the palette of
+              contemporary art masters adds diversity and modernity to the work, reflecting the inclusiveness and
+              innovation of crypto art within the Bitcoin ecosystem.
+            </p>
+            <p>
+              "Dance of Struct" is the second inscription art work by algorithmic artist RKStone. The successful launch
+              of the previous game "ColorMask" has been recognized and loved by collectors and the community. In
+              addition, the "ColorMask" algorithmic art project has also brought considerable airdrop benefits to the
+              collector community. The team is very grateful to collectors and the BTC ecosystem for their support.
+            </p>
+          </div>
+        </el-collapse-item>
+        <el-collapse-item title="About BAStudio and next steps" name="6">
+          <div>
+            <p>
+              BAStuido is a technical team from the BTC development community. The team adheres to using the best
+              technology to support artists to sell excellent works of art in the BTC ecosystem, spread BTC ideas and
+              encryption concepts, and introduce the world's outstanding artists into the BTC ecosystem, continuing to
+              build and expand the influence of the BTC ecosystem.
+            </p>
+            <p>
+              In addition to the research and development of artistic inscriptions on the first layer of BTC, we will
+              also conduct research and development of related projects and technologies on the second layer of Fractal
+              Bitcoin network to bring more artistic works to the second layer of Bitcoin.
+            </p>
+          </div>
+        </el-collapse-item>
       </el-collapse>
     </div>
   </div>
@@ -270,7 +337,9 @@ import { Search } from '@element-plus/icons-vue';
 import * as Api from '@/api/modules/all';
 import * as MempoolApi from '@/api/modules/mempool';
 
-const loading = ref(true);
+const loading = ref(false);
+const reLoading = ref(false);
+const searchLoading = ref(false);
 const address = ref('');
 const hSeed = ref('dBxo0jBAYVAGP3yb');
 const dialogVisible = ref(false);
@@ -300,26 +369,31 @@ const blockHeightEnd = import.meta.env.VITE_BLOCK_HEIGHT_END;
 const timeStart = ref(new Date('2022-12-31'));
 const timeEnd = ref(new Date('2022-12-31'));
 const restBlock = ref(0);
-const whiteListSearch = async (_) => {
+const whiteListSearch = async () => {
   if (whiteListAddress.value.length <= 0) {
     ElNotification.error({
       title: 'Whitelist',
       message: 'Please input wallet address',
     });
   } else {
-    isValid.value = (await Api.whiteListValidate(whiteListAddress.value)).isValid;
+    try {
+      searchLoading.value = true;
+      isValid.value = (await Api.whiteListValidate(whiteListAddress.value)).isValid;
+    } finally {
+      searchLoading.value = false;
+    }
   }
 };
 
 const reGenerate = async () => {
   try {
-    loading.value = true;
+    reLoading.value = true;
     const randomUsableSeedRes = await Api.randomUsableSeed(address.value);
     hSeed.value = randomUsableSeedRes.hSeed;
   } catch (e) {
     console.error(e);
   } finally {
-    loading.value = false;
+    reLoading.value = false;
   }
 };
 
@@ -362,21 +436,22 @@ const feeRateMap = ref({
   Normal: 0,
   Fast: 0,
 });
+
 const changeRadio = (val: string) => {
   feeRate.value = feeRateMap.value[val];
 };
 
 const dialogOpen = async () => {
   try {
+    step.value = 1;
     loading.value = true;
     const data = await MempoolApi.getFeeRate();
     feeRateMap.value = {
       Slow: Math.ceil(data.minimumFee),
-      Normal: Math.ceil(data.economyFee),
+      Normal: Math.ceil(data.halfHourFee),
       Fast: Math.ceil(data.fastestFee),
     };
     changeRadio('Normal');
-    step.value = 1;
     if ((await Api.whiteListValidate(address.value)).isValid) {
       price.value = 0;
     }
@@ -393,6 +468,7 @@ const nextClick = async () => {
   if (!sendFail.value) {
     step.value += 1;
   }
+
   try {
     const res = await window.unisat.getNetwork();
     if (res !== import.meta.env.VITE_MODE) {
@@ -401,25 +477,24 @@ const nextClick = async () => {
 
     saveOrderResponse.value = await Api.saveOrder(address.value, feeRate.value);
     try {
+      loading.value = true;
       txId.value = await window.unisat.sendBitcoin(
         saveOrderResponse.value.payAddress,
         saveOrderResponse.value.estimateFee,
       );
       step.value += 1;
     } catch (e) {
-      console.log(e);
       sendFail.value = true;
+      throw e;
     }
 
-    try {
-      loading.value = true;
-      executeOrderResponse.value = await Api.executeOrder(saveOrderResponse.value.orderId);
-    } finally {
-      loading.value = false;
-    }
+    executeOrderResponse.value = await Api.executeOrder(saveOrderResponse.value.orderId);
+
     await reGenerate();
   } catch (e) {
     console.log(e);
+  } finally {
+    loading.value = false;
   }
 };
 
@@ -459,6 +534,7 @@ false
 .img {
   @apply w-100 w-100;
 }
+
 .textRed {
   @apply text-[#F56C6C];
 }
