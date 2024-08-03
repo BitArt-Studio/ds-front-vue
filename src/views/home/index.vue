@@ -397,6 +397,24 @@ const reGenerate = async () => {
   }
 };
 
+const check = async () => {
+  const res = await window.unisat.getNetwork();
+  if (res !== import.meta.env.VITE_MODE) {
+    await window.unisat.switchNetwork(import.meta.env.VITE_MODE);
+  }
+
+  const condition = import.meta.env.VITE_MODE === 'testnet' ? 'tb1p' : 'bc1p';
+
+  if (!address.value.startsWith(condition)) {
+    address.value = '';
+    ElNotification.error({
+      title: 'Address type error',
+      message: 'Please use Taproot address',
+    });
+    throw new Error('Address Type Error');
+  }
+};
+
 const connectWalletClick = async () => {
   if (typeof window.unisat !== 'undefined') {
     console.log('UniSat Wallet is installed!');
@@ -411,16 +429,14 @@ const connectWalletClick = async () => {
     console.log('connect success', accounts);
     address.value = accounts[0];
 
-    const res = await window.unisat.getNetwork();
-    if (res !== import.meta.env.VITE_MODE) {
-      await window.unisat.switchNetwork(import.meta.env.VITE_MODE);
-    }
+    await check();
   } catch (e) {
     console.error(e);
   }
 
   window.unisat.on('accountsChanged', (accounts: Array<string>) => {
     address.value = accounts[0];
+    check();
   });
 
   await reGenerate();
@@ -444,6 +460,7 @@ const changeRadio = (val: string) => {
 const dialogOpen = async () => {
   try {
     step.value = 1;
+    sendFail.value = false;
     loading.value = true;
     const data = await MempoolApi.getFeeRate();
     feeRateMap.value = {
@@ -470,10 +487,7 @@ const nextClick = async () => {
   }
 
   try {
-    const res = await window.unisat.getNetwork();
-    if (res !== import.meta.env.VITE_MODE) {
-      await window.unisat.switchNetwork(import.meta.env.VITE_MODE);
-    }
+    await check();
 
     saveOrderResponse.value = await Api.saveOrder(address.value, feeRate.value);
     try {
