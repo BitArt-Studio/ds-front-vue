@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "main": "vite --mode main",
-    "build": "vue-tsc --noEmit --skipLibCheck && vite build",
+    "build": "vue-tsc --noEmit --skipLibCheck && vite build --mode test",
     "lint": "eslint src",
     "preview": "ite preview",
     "prepare": "husky install"

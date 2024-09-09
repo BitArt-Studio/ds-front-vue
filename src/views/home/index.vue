@@ -100,7 +100,7 @@
             <div v-else-if="step == 2" class="flex-col space-y-4">
               <div class="textRed text-xl">
                 <div v-if="!sendFail">Please sign transaction with unisat wallet</div>
-                <div v-else>Send btc fail, you can try again</div>
+                <div v-else>Send btc fail, you can try again.</div>
               </div>
               <div>Wait pay address: {{ saveOrderResponse.payAddress }}</div>
               <div>
@@ -109,9 +109,7 @@
               </div>
             </div>
             <div v-else-if="step == 3" class="textRed text-xl flex-col space-y-4">
-              <div v-if="executeOrderResponse.revealTxHash.length <= 0">
-                Please wait mint success，that won't take more than a minute
-              </div>
+              <div v-if="executeOrderResponse.revealTxHash.length <= 0">Please wait mint success.</div>
               <div v-else>
                 Congratulations! you can lock at:
                 <el-button link type="primary">
@@ -398,14 +396,16 @@ const reGenerate = async () => {
 };
 
 const check = async () => {
-  const res = await window.unisat.getNetwork();
-  if (res !== import.meta.env.VITE_MODE) {
-    await window.unisat.switchNetwork(import.meta.env.VITE_MODE);
-  }
+  window.unisat.switchChain(
+    import.meta.env.VITE_MODE === 'testnet' ? 'FRACTAL_BITCOIN_TESTNET' : 'FRACTAL_BITCOIN_MAINNET',
+  );
 
-  const condition = import.meta.env.VITE_MODE === 'testnet' ? 'tb1p' : 'bc1p';
+  // const res = await window.unisat.getNetwork();
+  // if (res !== import.meta.env.VITE_MODE) {
+  //   await window.unisat.switchNetwork(import.meta.env.VITE_MODE);
+  // }
 
-  if (!address.value.startsWith(condition)) {
+  if (!address.value.startsWith('bc1p')) {
     address.value = '';
     ElNotification.error({
       title: 'Address type error',
@@ -490,6 +490,7 @@ const nextClick = async () => {
     await check();
 
     saveOrderResponse.value = await Api.saveOrder(address.value, feeRate.value);
+    console.log(saveOrderResponse.value);
     try {
       loading.value = true;
       txId.value = await window.unisat.sendBitcoin(
